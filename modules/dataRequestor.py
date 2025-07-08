@@ -44,14 +44,5 @@ class DataRequestor:
         print(data.tail(rows))
         print(f"Rows: {data.shape[0]}, Columns: {data.shape[1]}")
 
-# Example usage
-if __name__ == "__main__":
-    tickers = ["BTC-USD"]
-    start_date = "2001-10-01"
-    end_date = "2025-06-31"
-    interval = "1d"
-    dr = DataRequestor(tickers, start_date, end_date, interval)
-    dr.fetch_and_save_all()
-
 
     

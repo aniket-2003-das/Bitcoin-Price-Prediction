@@ -1,5 +1,3 @@
-# Single-Coin LSTM Preprocessing Module
-
 import pandas as pd
 import numpy as np
 import joblib
@@ -9,21 +7,22 @@ warnings.filterwarnings('ignore')
 
 
 class SingleCoinPreprocessor:
-    """Handles preprocessing for a single cryptocurrency."""
+    """Handles preprocessing for a single cryptocurrency with separate scalers for train and test."""
 
     def __init__(self, prediction_days: int = 60):
         self.prediction_days = prediction_days
-        self.scaler = None
+        self.scaler_train = None
+        self.scaler_test = None
 
     def prepare_data(self, df: pd.DataFrame) -> dict:
         """
-        Prepares and scales training and test data.
+        Prepares and scales training and test data using separate scalers.
 
         Args:
             df (pd.DataFrame): DataFrame with 'Date' and 'Close' columns.
 
         Returns:
-            dict: Contains scaled train/test sets, original values, and dates.
+            dict: Contains original and scaled train/test sets, scalers, and dates.
         """
         df = df.sort_values('Date')
         prices = df['Close'].values.reshape(-1, 1)
@@ -35,9 +34,12 @@ class SingleCoinPreprocessor:
         train_data = prices[:train_size]
         test_data = prices[train_size:]
 
-        self.scaler = MinMaxScaler(feature_range=(0, 1))
-        scaled_train = self.scaler.fit_transform(train_data)
-        scaled_test = self.scaler.transform(test_data)
+        # Fit separate scalers
+        self.scaler_train = MinMaxScaler(feature_range=(0, 1))
+        self.scaler_test = MinMaxScaler(feature_range=(0, 1))
+
+        scaled_train = self.scaler_train.fit_transform(train_data)
+        scaled_test = self.scaler_test.fit_transform(test_data)
 
         print(f"Train size: {len(train_data)}, Test size: {len(test_data)}")
 
@@ -50,16 +52,18 @@ class SingleCoinPreprocessor:
         }
 
     def save_preprocessor(self, filepath: str):
-        """Save the scaler to disk."""
+        """Save both scalers to disk."""
         joblib.dump({
-            'scaler': self.scaler,
+            'scaler_train': self.scaler_train,
+            'scaler_test': self.scaler_test,
             'prediction_days': self.prediction_days
         }, filepath)
         print(f"Preprocessor saved to {filepath}")
 
     def load_preprocessor(self, filepath: str):
-        """Load the scaler from disk."""
+        """Load both scalers from disk."""
         data = joblib.load(filepath)
-        self.scaler = data['scaler']
+        self.scaler_train = data['scaler_train']
+        self.scaler_test = data['scaler_test']
         self.prediction_days = data['prediction_days']
         print(f"Preprocessor loaded from {filepath}")

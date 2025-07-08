@@ -17,11 +17,16 @@ from keras.callbacks import ModelCheckpoint, EarlyStopping
 class SingleCoinTrainer:
     """Trainer for single-coin LSTM model"""
 
-    def __init__(self, model, model_save_path: str = "models/"):
+    def __init__(self, model, model_save_path: str = "models/",
+                 scaler_train=None, scaler_test=None):
         self.model = model
         self.model_save_path = Path(model_save_path)
         self.model_save_path.mkdir(parents=True, exist_ok=True)
         self.history = None
+
+        # Optional: keep references to scalers (can be saved with model or reused later)
+        self.scaler_train = scaler_train
+        self.scaler_test = scaler_test
 
     def train(self, 
               X_train: np.ndarray, y_train: np.ndarray, 
